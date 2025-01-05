@@ -2,13 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Nav from "../components/Nav";
-import Footer from "../components/Footer";
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaUser, FaPaperPlane, FaRegTrashAlt, FaCopy, FaBrain, FaCircle } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaRobot, FaUser, FaPaperPlane, FaRegTrashAlt, FaCopy } from 'react-icons/fa';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import LoadingDots from '../components/LoadingDots';
 import ModelSwitch from '../components/ModelSwitch';
 import AILoader from '../components/AILoader';
 
@@ -25,8 +23,10 @@ export default function ChatBot() {
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [isAdvancedModel, setIsAdvancedModel] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Add initial greeting message
     if (messages.length === 0) {
       setMessages([{
@@ -36,7 +36,7 @@ export default function ChatBot() {
         timestamp: new Date()
       }]);
     }
-  }, []);
+  }, [messages.length]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -97,7 +97,9 @@ export default function ChatBot() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    if (typeof window !== 'undefined') {
+      navigator.clipboard.writeText(text);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -107,47 +109,18 @@ export default function ChatBot() {
     }
   };
 
-  const handleModelChange = async (isAdvanced: boolean) => {
+  const handleModelChange = (isAdvanced: boolean) => {
     setIsAdvancedModel(isAdvanced);
-    setMessages(prev => [...prev, {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: `Switched to ${isAdvanced ? 'advanced' : 'basic'} mode. How can I help you?`,
-      timestamp: new Date()
-    }]);
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
       <Nav />
       <main className="flex-grow flex flex-col pt-16">
-        {/* Animated Background Elements */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-violet-50/20 to-transparent dark:from-violet-900/10"></div>
-          {/* Floating Circles */}
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-64 h-64 bg-purple-500/5 dark:bg-purple-500/10 rounded-full"
-              initial={{ 
-                x: Math.random() * window.innerWidth, 
-                y: Math.random() * window.innerHeight 
-              }}
-              animate={{
-                x: [null, Math.random() * window.innerWidth],
-                y: [null, Math.random() * window.innerHeight],
-                scale: [1, 1.2, 1]
-              }}
-              transition={{
-                duration: Math.random() * 10 + 20,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "linear"
-              }}
-            />
-          ))}
-        </div>
-
         {/* Chat Container - Adjusted spacing without banner */}
         <div className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="max-w-4xl mx-auto">
@@ -157,11 +130,6 @@ export default function ChatBot() {
               transition={{ duration: 0.5 }}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 min-h-[calc(100vh-8rem)] flex flex-col relative overflow-hidden mb-24"
             >
-              {/* Background Pattern */}
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[url('/ai-grid.svg')] bg-repeat opacity-[0.02]"></div>
-              </div>
-
               {/* Messages Container */}
               <div 
                 ref={chatContainerRef}
@@ -193,7 +161,7 @@ export default function ChatBot() {
                       <ReactMarkdown
                         className="prose dark:prose-invert max-w-none"
                         components={{
-                          code: ({node, inline, className, children, ...props}) => {
+                          code: ({inline, className, children, ...props}) => {
                             const match = /language-(\w+)/.exec(className || '');
                             return !inline && match ? (
                               <SyntaxHighlighter
@@ -244,23 +212,7 @@ export default function ChatBot() {
           </div>
         </div>
 
-        {/* Keep the corner decorations */}
-        <div className="fixed top-0 right-0 p-4 pointer-events-none">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-            className="w-24 h-24 rounded-full border-4 border-purple-500/20 border-dashed"
-          />
-        </div>
-        <div className="fixed bottom-0 left-0 p-4 pointer-events-none">
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="w-32 h-32 rounded-full border-4 border-violet-500/10 border-dashed"
-          />
-        </div>
-
-        {/* Fixed Input Area - Add z-index and proper spacing */}
+        {/* Fixed Input Area */}
         <div className="fixed bottom-0 left-0 right-0 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 z-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="max-w-4xl mx-auto">
@@ -303,12 +255,7 @@ export default function ChatBot() {
                           : 'bg-violet-500 dark:bg-violet-600 text-white hover:bg-violet-600 dark:hover:bg-violet-700'
                         }`}
                     >
-                      <motion.div
-                        animate={isLoading ? { rotate: 360 } : { rotate: 0 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      >
-                        <FaPaperPlane className="w-4 h-4" />
-                      </motion.div>
+                      <FaPaperPlane className="w-4 h-4" />
                     </motion.button>
                   </div>
                 </div>

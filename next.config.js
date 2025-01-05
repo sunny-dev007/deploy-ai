@@ -5,6 +5,11 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    appDir: true,
+  },
+  reactStrictMode: true,
+  swcMinify: true,
 }
 
 module.exports = nextConfig 
