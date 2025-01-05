@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "azure-build": "next build",
+    "azure-start": "next start",
+    "deploy": "az webapp up --runtime NODE:18-lts --sku B1 --name your-app-name"
   },
   "dependencies": {
     "@types/nodemailer": "^6.4.17",
