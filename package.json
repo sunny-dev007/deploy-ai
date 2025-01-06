@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start -p 8080",
+    "start": "next start",
     "azure-build": "next build",
-    "azure-start": "next start -p 8080",
+    "azure-start": "next start",
     "deploy": "az webapp up --runtime NODE:18-lts --sku B1 --name your-app-name"
   },
   "dependencies": {
